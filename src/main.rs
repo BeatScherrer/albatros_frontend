@@ -1,38 +1,46 @@
-use iced::widget::{button, column, text, Column};
+use components::home::home_component;
+use iced::{widget::center, Element};
+
+mod components;
+
+#[derive(Copy, Clone, Debug, Default)]
+enum Route {
+    #[default]
+    Home,
+    Settings
+}
 
 #[derive(Default)]
-struct Counter {
-    value: i32
+struct Application {
+    route: Route,
+    value: Option<u32>
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Message {
-    Increment,
-    Decrement
+
+#[derive(Clone, Debug)]
+enum Message {
+    NavigateTo(Route),
+    NumericInputChanged(Option<u32>)
 }
 
-impl Counter {
-    pub fn view(&self) -> Column<Message> {
-        column![
-            button("+").on_press(Message::Increment),
-            text(self.value).size(50),
-            button("-").on_press(Message::Decrement)
-        ]
-    }
+impl Application {
 
     pub fn update(&mut self, message: Message) {
-        match message {
-            Message::Increment => {
-            self.value += 1;
-            }
-            Message::Decrement => {
-            self.value -= 1;
-            }
-        }
+    match message {
+        Message::NavigateTo(route) => self.route = route,
+        Message::NumericInputChanged(value) => self.value = value,
     }
+    }
+
+    pub fn view(&self) -> Element<Message> {
+      center(home_component(self.value, Message::NumericInputChanged))
+      .padding(20)
+      .into()
+    }
+
 }
 
 
 fn main() -> iced::Result {
-  iced::run("A cool counter", Counter::update, Counter::view)
+  iced::run("Albatros", Application::update, Application::view)
 }
