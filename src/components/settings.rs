@@ -43,12 +43,12 @@ where
     type State = ();
     type Event = Event;
 
-    fn update(&mut self, _state: &mut Self::State, event: Event) -> Option<Message> {
-        todo!()
+    fn update(&mut self, _state: &mut Self::State, _event: Event) -> Option<Message> {
+        None
     }
 
     fn view(&self, _state: &Self::State) -> Element<'_, Event, Theme> {
-        todo!()
+        text("hello world").into()
     }
 }
 

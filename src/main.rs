@@ -2,7 +2,7 @@ use components::{
     home::home_component,
     settings::{settings_component, Settings},
 };
-use iced::{widget::center, Element};
+use iced::{widget::{center, row, button}, Element};
 
 mod components;
 
@@ -40,15 +40,17 @@ impl Application {
     }
 
     pub fn view(&self) -> Element<Message> {
-      
+      row![
+        button("home").on_press(Message::NavigateTo(Route::Home)),
+        button("settings").on_press(Message::NavigateTo(Route::Settings)),
         match self.route {
             Route::Home => center(home_component(self.value, Message::NumericInputChanged))
-                .padding(20)
-                .into(),
+                .padding(20),
             Route::Settings => {
-                center(settings_component(&self.settings, Message::SettingsChanged)).into()
+                center(settings_component(&self.settings, Message::SettingsChanged))
             }
         }
+      ].into()
     }
 }
 
