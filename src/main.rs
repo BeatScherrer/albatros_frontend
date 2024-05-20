@@ -1,4 +1,7 @@
-use components::home::home_component;
+use components::{
+    home::home_component,
+    settings::{settings_component, Settings},
+};
 use iced::{widget::center, Element};
 
 mod components;
@@ -7,40 +10,48 @@ mod components;
 enum Route {
     #[default]
     Home,
-    Settings
+    Settings,
 }
 
 #[derive(Default)]
 struct Application {
     route: Route,
-    value: Option<u32>
+    value: Option<u32>,
+    settings: Settings,
 }
-
 
 #[derive(Clone, Debug)]
 enum Message {
     NavigateTo(Route),
-    NumericInputChanged(Option<u32>)
+    // Used to get bind the event in the home component
+    NumericInputChanged(Option<u32>),
+    SettingsChanged(Settings),
 }
 
 impl Application {
-
     pub fn update(&mut self, message: Message) {
-    match message {
-        Message::NavigateTo(route) => self.route = route,
-        Message::NumericInputChanged(value) => self.value = value,
-    }
+        match message {
+            Message::NavigateTo(route) => self.route = route,
+            Message::NumericInputChanged(value) => self.value = value,
+            Message::SettingsChanged(settings) => {
+                println!("settings changed: {:?}", settings)
+            }
+        }
     }
 
     pub fn view(&self) -> Element<Message> {
-      center(home_component(self.value, Message::NumericInputChanged))
-      .padding(20)
-      .into()
+      
+        match self.route {
+            Route::Home => center(home_component(self.value, Message::NumericInputChanged))
+                .padding(20)
+                .into(),
+            Route::Settings => {
+                center(settings_component(&self.settings, Message::SettingsChanged)).into()
+            }
+        }
     }
-
 }
 
-
 fn main() -> iced::Result {
-  iced::run("Albatros", Application::update, Application::view)
+    iced::run("Albatros", Application::update, Application::view)
 }
