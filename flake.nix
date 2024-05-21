@@ -15,8 +15,10 @@
             bashInteractive
             hello
             just
+            cargo
             rustc
             rustfmt
+            rust-analyzer
           ];
         };
       });
