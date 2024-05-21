@@ -1,24 +1,31 @@
 
 {
   description = "Development flake";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+  };
+
+  outputs = { nixpkgs, rust-overlay, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+      in with pkgs;
       {
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
+          buildInputs = [
+            rust-bin.nightly.latest.default
+          ];
+
+          packages = [
             bashInteractive
             hello
             just
-            cargo
-            rustc
-            rustfmt
-            rust-analyzer
           ];
         };
       });
