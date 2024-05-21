@@ -24,7 +24,6 @@
 
           packages = [
             bashInteractive
-            hello
             just
           ];
         };
