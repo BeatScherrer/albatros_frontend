@@ -12,15 +12,23 @@
  * Messages:
  *
  * - on single notification click emit message 'NotificationClicked(Notification)'
- * - on new notification data: add 
+ * - on new notification data: add
+ *
+ * the following resource explains on how to control widgets by commands. In particular:
+ * how a text_input field can be focused based on its id.
+ *
+ * this would be analogous to how we can dispose or add a notification
+ * https://github.com/fogarecious/iced_tutorial/blob/main/tutorial/controlling_widgets_by_commands.md
+ *
+ * TODO: Investigate if a component would be a better match for these requirements
  *
  */
 
-use iced::{widget::{overlay, text}, Element, Length, Size, advanced::layout, Color, Border};
+use iced::{widget::{overlay, text}, Element, Length, Size, advanced::layout, Color, Border, Command};
 use iced::advanced::widget::Widget;
 use iced::advanced::renderer;
 
-use crate::AlbatrosMessage;
+use uuid::Uuid;
 
 #[derive(Clone, Default, Debug)]
 pub enum NotificationLevel {
@@ -33,6 +41,7 @@ pub enum NotificationLevel {
 
 #[derive(Clone, Debug, Default)]
 pub struct Notification {
+    id: Uuid,
     level: NotificationLevel,
     title: String,
     message: String
@@ -41,6 +50,15 @@ pub struct Notification {
     pub fn notification() -> Notification {
         Notification::default()
     }
+
+
+pub fn add<Message>(id: Uuid) -> Command<Message> {
+    Command::none()
+}
+
+pub fn dispose<Message>(id: Uuid) -> Command<Message> {
+    Command::none()
+}
 
 
 impl<Message, Theme, Renderer> Widget<Message, Theme, Renderer> for Notification

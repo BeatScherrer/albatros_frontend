@@ -1,7 +1,7 @@
 use iced::Element;
 use iced::widget::text;
 
-use crate::AlbatrosMessage;
+use crate::application::AlbatrosMessage;
 
 #[derive(Clone, Debug, Default)]
 pub struct Profile {
