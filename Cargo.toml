@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-iced =  {git = "https://github.com/iced-rs/iced.git", branch = "master", features = ["debug", "lazy"]}
+iced =  {git = "https://github.com/iced-rs/iced.git", branch = "master", features = ["debug", "advanced"]}
 tracing = "0.1"
+color-eyre = "0.6"

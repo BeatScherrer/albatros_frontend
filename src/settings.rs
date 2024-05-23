@@ -1,7 +1,7 @@
 use iced::Element;
 use iced::widget::{column, text};
 
-use crate::Message;
+use crate::AlbatrosMessage;
 
 #[derive(Clone, Debug, Default)]
 pub struct Settings {
@@ -10,7 +10,7 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn view(self: &Self) -> Element<Message> {
+    pub fn view(self: &Self) -> Element<AlbatrosMessage> {
         // column!(
         //     text("hello world")
         // ).into()

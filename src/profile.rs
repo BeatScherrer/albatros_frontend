@@ -1,7 +1,7 @@
 use iced::Element;
 use iced::widget::text;
 
-use crate::Message;
+use crate::AlbatrosMessage;
 
 #[derive(Clone, Debug, Default)]
 pub struct Profile {
@@ -9,7 +9,7 @@ pub struct Profile {
 }
 
 impl Profile {
-    pub fn view(self: &Self) -> Element<Message> {
+    pub fn view(self: &Self) -> Element<AlbatrosMessage> {
         text(format!("Hello from profile {:?}", self)).into()
     }
 }
