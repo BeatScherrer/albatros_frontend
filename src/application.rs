@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
+#![allow(dead_code, unused_variables)]
 
 use iced::{advanced::Application, Element, executor, Command, widget::{row, container}, widget::{column, button}};
 
