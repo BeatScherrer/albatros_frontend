@@ -1,4 +1,7 @@
-use iced::{advanced::Application, Element, executor, Command, widget::row, widget::{column, button}, Alignment};
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
+use iced::{advanced::Application, Element, executor, Command, widget::{row, container}, widget::{column, button}};
 
 use crate::{settings::Settings, profile::Profile, notifications::Notification};
 
@@ -22,10 +25,6 @@ pub struct AlbatrosApplication {
 #[derive(Clone, Debug)]
 pub enum AlbatrosMessage {
     NavigateTo(Page),
-    // Used to get bind the event in the home component
-    NumericInputChanged(Option<u32>),
-    SettingsChanged(Settings),
-    NotificationClicked(Notification)
 }
 
 impl AlbatrosApplication {
@@ -60,11 +59,6 @@ impl Application for AlbatrosApplication {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             AlbatrosMessage::NavigateTo(route) => self.page = route,
-            AlbatrosMessage::NumericInputChanged(value) => self.value = value,
-            AlbatrosMessage::SettingsChanged(settings) => {
-                println!("settings changed: {:?}", settings)
-            }
-            AlbatrosMessage::NotificationClicked(_) => todo!(),
         }
 
         Command::none()
@@ -82,6 +76,6 @@ impl Application for AlbatrosApplication {
               self.profile.view()
             }
         },
-      ].align_items(Alignment::Center).into()
+      ].into()
     }
 }
