@@ -3,8 +3,7 @@
 use iced::{
     advanced::Application,
     executor,
-    widget::row,
-    widget::{button, column},
+    widget::{button, column, container, row, text},
     Command, Element,
 };
 
@@ -83,9 +82,11 @@ impl Application for AlbatrosApplication {
                     self.profile.view()
                 }
             },
-            Notifications::new(button("test"), &self.notifications, |s: usize| {
-                AlbatrosMessage::Dummy(1)
-            })
+            Notifications::new(
+                column![text("hello"), text("world")],
+                &self.notifications,
+                |s: usize| { AlbatrosMessage::Dummy(1) }
+            )
         ]
         .into()
     }

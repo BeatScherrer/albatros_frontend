@@ -103,6 +103,9 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for Notifications<'a, Message
         renderer: &Renderer,
         limits: &iced::advanced::layout::Limits,
     ) -> iced::advanced::layout::Node {
+        println!("{:?}", tree);
+
+        // NOTE: tree is empty currently
         self.content
             .as_widget()
             .layout(&mut tree.children[0], renderer, limits)
