@@ -1,3 +1,9 @@
+use iced::{Alignment, Event};
+use iced::{advanced::Widget, Theme, Renderer, Size, Length, Element};
+use iced::widget::{button, column, row, horizontal_rule, container, text, horizontal_space};
+
+#[allow(dead_code, unused_imports)]
+
 /* NOTE:
  * The notifications have the following requirements
  * - [ ] Pop up relative to the root node (top middle or top right)
@@ -20,55 +26,78 @@
  * this would be analogous to how we can dispose or add a notification
  * https://github.com/fogarecious/iced_tutorial/blob/main/tutorial/controlling_widgets_by_commands.md
  *
- * TODO: Investigate if a component would be a better match for these requirements
+ * TODO: the 'toast' example is what is required more or less
  *
  */
 
-use iced::{widget::{overlay, text}, Element, Length, Size, advanced::layout, Color, Border, Command};
-use iced::advanced::widget::Widget;
-use iced::advanced::renderer;
+pub const DEFAULT_TIMEOUT: u64 = 5;
 
-use uuid::Uuid;
-
-#[derive(Clone, Default, Debug)]
-pub enum NotificationLevel {
-    Debug,
-    #[default]
-    Info,
-    Warn,
-    Error
+pub enum Message {
+  Event(Event),
+  Dummy
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Notification {
-    id: Uuid,
-    level: NotificationLevel,
     title: String,
-    message: String
+    message: String,
 }
 
-    pub fn notification() -> Notification {
-        Notification::default()
-    }
-
-
-pub fn add<Message>(id: Uuid) -> Command<Message> {
-    Command::none()
+pub struct Notifications<'a, Message> {
+    content: Element<'a, Message>,
+    notifications: Vec<Element<'a, Message>>,
+    timeout_secs: u64,
 }
 
-pub fn dispose<Message>(id: Uuid) -> Command<Message> {
-    Command::none()
-}
-
-
-impl<Message, Theme, Renderer> Widget<Message, Theme, Renderer> for Notification
-  where Renderer: renderer::Renderer
+impl <'a, Message> Notifications<'a, Message>
+where Message: 'a + Clone,
 {
-    fn size(&self) -> iced::Size<iced::Length> {
-        Size{
-            width: Length::Fill,
-            height: Length::Shrink
-        }
+pub fn new(content: impl Into<Element<'a, Message>>, notifications: &'a [Notification], on_close: impl Fn(usize) -> Message + 'a) -> Self {
+            let notifications = notifications
+                .iter()
+                .enumerate()
+                .map(|(index, notification)| {
+                    container(column![
+                        container(
+                            row![
+                                text(notification.title.as_str()),
+                                horizontal_space(),
+                                button("X")
+                                    .on_press((on_close)(index))
+                                    .padding(3),
+                            ]
+                            .align_items(Alignment::Center)
+                        )
+                        .width(Length::Fill)
+                        .padding(5),
+                        // .style(match toast.status {
+                        //     Status::Primary => primary,
+                        //     Status::Secondary => secondary,
+                        //     Status::Success => success,
+                        //     Status::Danger => danger,
+                        // }),
+                        horizontal_rule(1),
+                        container(text(notification.message.as_str()))
+                            .width(Length::Fill)
+                            .padding(5)
+                            .style(container::rounded_box),
+                    ])
+                    .max_width(200)
+                    .into()
+                })
+                .collect();
+
+                Self {
+                content: content.into(),
+                notifications,
+                timeout_secs: DEFAULT_TIMEOUT,
+                }
+           }
+}
+
+impl <'a, Message> Widget<Message, Theme, Renderer> for Notifications<'a, Message> {
+    fn size(&self) -> Size<Length> {
+        self.content.as_widget().size()
     }
 
     fn layout(
@@ -77,7 +106,7 @@ impl<Message, Theme, Renderer> Widget<Message, Theme, Renderer> for Notification
         renderer: &Renderer,
         limits: &iced::advanced::layout::Limits,
     ) -> iced::advanced::layout::Node {
-        layout::Node::new(Size::new(100.0, 50.0))
+        self.content.as_widget().layout(&mut tree.children[0], renderer, limits)
     }
 
     fn draw(
@@ -85,25 +114,20 @@ impl<Message, Theme, Renderer> Widget<Message, Theme, Renderer> for Notification
         tree: &iced::advanced::widget::Tree,
         renderer: &mut Renderer,
         theme: &Theme,
-        style: &renderer::Style,
+        style: &iced::advanced::renderer::Style,
         layout: iced::advanced::Layout<'_>,
         cursor: iced::advanced::mouse::Cursor,
         viewport: &iced::Rectangle,
     ) {
-        // TODO: we want to draw relative to the root node
-        renderer.fill_quad(renderer::Quad{
-            bounds: layout.bounds(),
-            border: Border::rounded(10),
-            ..renderer::Quad::default()
-        }, Color::WHITE)
+        self.content.as_widget().draw(&tree.children[0], renderer, theme, style, layout, cursor, viewport);
     }
 }
 
-impl <Message, Theme, Renderer> From<Notification> for Element<'_, Message, Theme, Renderer>
-  where Renderer: renderer::Renderer
-{
-    fn from(value: Notification) -> Self {
-        Self::new(value)
-    }
-}
 
+impl<'a, Message> From<Notifications<'a, Message>> for Element<'a, Message>
+where Message: 'a
+      {
+        fn from(value: Notifications<'a, Message>) -> Self {
+            Element::new(value)
+    }
+    }

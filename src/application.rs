@@ -1,15 +1,15 @@
 #![allow(dead_code, unused_variables)]
 
-use iced::{advanced::Application, Element, executor, Command, widget::{row, container}, widget::{column, button}};
+use iced::{advanced::Application, Element, executor, Command, widget::row, widget::{column, button}};
 
-use crate::{settings::Settings, profile::Profile, notifications::Notification};
+use crate::{settings::Settings, profile::Profile, notifications::{Notification, Notifications}};
 
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum Page {
     #[default]
     Settings,
-    Profile
+    Profile,
 }
 
 #[derive(Default)]
@@ -24,6 +24,7 @@ pub struct AlbatrosApplication {
 #[derive(Clone, Debug)]
 pub enum AlbatrosMessage {
     NavigateTo(Page),
+    Dummy(u64)
 }
 
 impl AlbatrosApplication {
@@ -33,7 +34,7 @@ impl AlbatrosApplication {
         button("settings").on_press(AlbatrosMessage::NavigateTo(Page::Settings)),
         button("profile").on_press(AlbatrosMessage::NavigateTo(Page::Profile)),
     ].spacing(10).padding(10).into()
-}
+  }
 }
 
 impl Application for AlbatrosApplication {
@@ -63,7 +64,6 @@ impl Application for AlbatrosApplication {
         Command::none()
     }
 
-
     fn view(&self) -> Element<'_, AlbatrosMessage> {
       row![
         self.navigation(),
@@ -75,6 +75,7 @@ impl Application for AlbatrosApplication {
               self.profile.view()
             }
         },
+        Notifications::new(button("test"), self.notifications, AlbatrosMessage::Dummy)
       ].into()
     }
 }
