@@ -15,17 +15,26 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-      in with pkgs;
-      {
-        devShells.default = pkgs.mkShell {
-          buildInputs = [
+      in with pkgs; rec {
+        devShells.default = mkShell rec {
+          buildInputs = with pkgs; [
             rust-bin.nightly.latest.default
+            # NOTE: Required for winit event loop
+            libxkbcommon
+            libGL
+            xorg.libXcursor
+            xorg.libXrandr
+            xorg.libXi
+            xorg.libX11
           ];
 
+          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
+
           packages = [
-            bashInteractive
             just
           ];
+
+          # FIXME: Fix the LD_LIBRARY_PATH to get the winit event loop working
         };
       });
 }
