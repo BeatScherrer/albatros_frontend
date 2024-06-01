@@ -9,7 +9,7 @@ use iced::{
 };
 
 use crate::{
-    notifications::{Notification, Notifications},
+    notifications::{Message, Notification, Notifications},
     profile::Profile,
     settings::Settings,
 };
@@ -83,7 +83,9 @@ impl Application for AlbatrosApplication {
                     self.profile.view()
                 }
             },
-            Notifications::new(button("test"), self.notifications, AlbatrosMessage::Dummy)
+            Notifications::new(button("test"), &self.notifications, |s: usize| {
+                AlbatrosMessage::Dummy(1)
+            })
         ]
         .into()
     }
