@@ -1,5 +1,5 @@
-use iced::Element;
 use iced::widget::text;
+use iced::Element;
 
 use crate::application::AlbatrosMessage;
 
