@@ -32,6 +32,8 @@
 
           packages = [
             just
+            rust-analyzer
+            rustfmt
           ];
         };
       });
