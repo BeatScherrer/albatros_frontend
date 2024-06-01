@@ -33,8 +33,6 @@
           packages = [
             just
           ];
-
-          # FIXME: Fix the LD_LIBRARY_PATH to get the winit event loop working
         };
       });
 }
