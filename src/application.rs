@@ -1,9 +1,18 @@
 #![allow(dead_code, unused_variables)]
 
-use iced::{advanced::Application, Element, executor, Command, widget::row, widget::{column, button}};
+use iced::{
+    advanced::Application,
+    executor,
+    widget::row,
+    widget::{button, column},
+    Command, Element,
+};
 
-use crate::{settings::Settings, profile::Profile, notifications::{Notification, Notifications}};
-
+use crate::{
+    notifications::{Notification, Notifications},
+    profile::Profile,
+    settings::Settings,
+};
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum Page {
@@ -18,23 +27,25 @@ pub struct AlbatrosApplication {
     value: Option<u32>,
     settings: Settings,
     profile: Profile,
-    notifications: Vec<Notification>
+    notifications: Vec<Notification>,
 }
 
 #[derive(Clone, Debug)]
 pub enum AlbatrosMessage {
     NavigateTo(Page),
-    Dummy(u64)
+    Dummy(u64),
 }
 
 impl AlbatrosApplication {
-
-  fn navigation(&self) -> Element<AlbatrosMessage> {
-    column![
-        button("settings").on_press(AlbatrosMessage::NavigateTo(Page::Settings)),
-        button("profile").on_press(AlbatrosMessage::NavigateTo(Page::Profile)),
-    ].spacing(10).padding(10).into()
-  }
+    fn navigation(&self) -> Element<AlbatrosMessage> {
+        column![
+            button("settings").on_press(AlbatrosMessage::NavigateTo(Page::Settings)),
+            button("profile").on_press(AlbatrosMessage::NavigateTo(Page::Profile)),
+        ]
+        .spacing(10)
+        .padding(10)
+        .into()
+    }
 }
 
 impl Application for AlbatrosApplication {
@@ -45,11 +56,7 @@ impl Application for AlbatrosApplication {
     type Renderer = iced::Renderer;
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (
-            Self::default(),
-            Command::none()
-            )
-
+        (Self::default(), Command::none())
     }
 
     fn title(&self) -> String {
@@ -59,23 +66,25 @@ impl Application for AlbatrosApplication {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             AlbatrosMessage::NavigateTo(route) => self.page = route,
+            AlbatrosMessage::Dummy(_) => println!("dummy message received"),
         }
 
         Command::none()
     }
 
     fn view(&self) -> Element<'_, AlbatrosMessage> {
-      row![
-        self.navigation(),
-        match self.page {
-            Page::Settings => {
-              self.settings.view()
+        row![
+            self.navigation(),
+            match self.page {
+                Page::Settings => {
+                    self.settings.view()
+                }
+                Page::Profile => {
+                    self.profile.view()
+                }
             },
-            Page::Profile => {
-              self.profile.view()
-            }
-        },
-        Notifications::new(button("test"), self.notifications, AlbatrosMessage::Dummy)
-      ].into()
+            Notifications::new(button("test"), self.notifications, AlbatrosMessage::Dummy)
+        ]
+        .into()
     }
 }
