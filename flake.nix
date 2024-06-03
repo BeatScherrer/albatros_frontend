@@ -1,4 +1,3 @@
-
 {
   description = "Development flake";
 
@@ -8,14 +7,21 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { nixpkgs, rust-overlay, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         overlays = [ (import rust-overlay) ];
-        pkgs = import nixpkgs {
-          inherit system overlays;
-        };
-      in with pkgs; rec {
+        pkgs = import nixpkgs { inherit system overlays; };
+      in
+      with pkgs;
+      rec {
         devShells.default = mkShell rec {
           buildInputs = with pkgs; [
             rust-bin.nightly.latest.default
@@ -34,7 +40,10 @@
             just
             rust-analyzer
             rustfmt
+            nixd
+            nixfmt-rfc-style
           ];
         };
-      });
+      }
+    );
 }
