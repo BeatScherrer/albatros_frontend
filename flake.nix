@@ -42,6 +42,7 @@
             rustfmt
             nixd
             nixfmt-rfc-style
+            taplo-lsp
           ];
         };
       }
