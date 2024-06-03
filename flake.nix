@@ -21,9 +21,9 @@
         pkgs = import nixpkgs { inherit system overlays; };
       in
       with pkgs;
-      rec {
+      {
         devShells.default = mkShell rec {
-          buildInputs = with pkgs; [
+          buildInputs = [
             rust-bin.nightly.latest.default
             # NOTE: Required for winit event loop
             libxkbcommon
