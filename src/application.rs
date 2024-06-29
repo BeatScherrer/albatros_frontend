@@ -33,7 +33,7 @@ pub struct AlbatrosApplication {
 #[derive(Clone, Debug)]
 pub enum AlbatrosMessage {
     NavigateTo(Page),
-    Dummy(u64),
+    Dummy(usize),
     DebugToggled(bool),
 }
 
@@ -102,7 +102,10 @@ impl Application for AlbatrosApplication {
             container(Notifications::new(
                 column![text("hello"), text("world")],
                 &self.notifications,
-                |s: usize| AlbatrosMessage::Dummy(1),
+                |s: usize| {
+                    println!("close clicked!");
+                    AlbatrosMessage::Dummy(s)
+                },
             ))
             .width(0), // NOTE: hack to hide the widget
         ]
