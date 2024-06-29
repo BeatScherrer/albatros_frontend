@@ -1,11 +1,12 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
-use iced::advanced::renderer::Quad;
+use iced::advanced::overlay;
+
 use iced::advanced::widget::Tree;
-use iced::advanced::{layout, widget};
+use iced::advanced::{layout, renderer, widget, Clipboard, Layout, Shell};
 use iced::widget::{button, column, container, horizontal_rule, horizontal_space, row, text};
 use iced::{advanced::Widget, Element, Length, Renderer, Size, Theme};
-use iced::{Alignment, Border, Color, Event, Shadow};
+use iced::{event, mouse, window, Alignment, Color, Event, Point, Rectangle, Vector};
 
 #[allow(dead_code, unused_imports)]
 
@@ -49,7 +50,6 @@ pub struct Notification {
 }
 
 pub struct Notifications<'a, Message> {
-    /// TODO: What is this content actually?? Content of the app?
     content: Element<'a, Message>,
     notifications: Vec<Element<'a, Message>>,
     timeout_secs: u64,
@@ -90,8 +90,9 @@ where
             })
             .collect();
 
+        // TODO: switch .explain() on debug flag smh
         Self {
-            content: content.into(),
+            content: content.into().explain(Color::BLACK),
             notifications,
             timeout_secs: DEFAULT_TIMEOUT,
         }
@@ -135,17 +136,49 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for Notifications<'a, Message
         );
     }
 
-    // NOTE: This seems required
     fn children(&self) -> Vec<iced::advanced::widget::Tree> {
         std::iter::once(Tree::new(&self.content))
             .chain(self.notifications.iter().map(Tree::new))
             .collect()
     }
 
-    // NOTE: This is also required...
     fn tag(&self) -> widget::tree::Tag {
         struct Marker;
         widget::tree::Tag::of::<Marker>()
+    }
+
+    fn overlay<'b>(
+        &'b mut self,
+        state: &'b mut Tree,
+        layout: layout::Layout<'_>,
+        renderer: &Renderer,
+        translation: iced::Vector,
+    ) -> Option<iced::advanced::overlay::Element<'b, Message, Theme, Renderer>> {
+        let instants = state.state.downcast_mut::<Vec<Option<Instant>>>();
+        let (content_state, notification_state) = state.children.split_at_mut(1);
+
+        let content = self.content.as_widget_mut().overlay(
+            &mut content_state[0],
+            layout,
+            renderer,
+            translation,
+        );
+
+        let notifications = (!self.notifications.is_empty()).then(|| {
+            overlay::Element::new(Box::new(Overlay {
+                position: Point { x: 0.0, y: 0.0 },
+                notifications: &mut self.notifications,
+                state: notification_state,
+                instants,
+            }))
+        });
+
+        let overlays = content.into_iter().chain(notifications).collect::<Vec<_>>();
+        (!overlays.is_empty()).then(|| overlay::Group::with_children(overlays).overlay())
+    }
+
+    fn state(&self) -> widget::tree::State {
+        widget::tree::State::new(Vec::<Option<Instant>>::new())
     }
 }
 
@@ -156,4 +189,171 @@ where
     fn from(value: Notifications<'a, Message>) -> Self {
         Element::new(value)
     }
+}
+
+struct Overlay<'a, 'b, Message> {
+    position: Point,
+    notifications: &'b mut [Element<'a, Message>],
+    state: &'b mut [Tree],
+    instants: &'b mut [Option<Instant>],
+}
+
+impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a, 'b, Message> {
+    fn layout(&mut self, renderer: &Renderer, bounds: Size) -> layout::Node {
+        let limits = layout::Limits::new(Size::ZERO, bounds);
+
+        layout::flex::resolve(
+            layout::flex::Axis::Vertical,
+            renderer,
+            &limits,
+            Length::Fill,
+            Length::Fill,
+            10.into(),
+            10.0,
+            Alignment::End,
+            self.notifications,
+            self.state,
+        )
+        .translate(Vector::new(self.position.x, self.position.y))
+    }
+
+    // fn on_event(
+    //     &mut self,
+    //     event: Event,
+    //     layout: Layout<'_>,
+    //     cursor: mouse::Cursor,
+    //     renderer: &Renderer,
+    //     clipboard: &mut dyn Clipboard,
+    //     shell: &mut Shell<'_, Message>,
+    // ) -> event::Status {
+    //     if let Event::Window(window::Event::RedrawRequested(now)) = &event {
+    //         let mut next_redraw: Option<window::RedrawRequest> = None;
+    //
+    //         // self.instants
+    //         //     .iter_mut()
+    //         //     .enumerate()
+    //         //     .for_each(|(index, maybe_instant)| {
+    //         //         if let Some(instant) = maybe_instant.as_mut() {
+    //         //             let remaining = Duration::from_secs(self.timeout_secs)
+    //         //                 .saturating_sub(instant.elapsed());
+    //         //
+    //         //             if remaining == Duration::ZERO {
+    //         //                 maybe_instant.take();
+    //         //                 shell.publish((self.on_close)(index));
+    //         //                 next_redraw = Some(window::RedrawRequest::NextFrame);
+    //         //             } else {
+    //         //                 let redraw_at = window::RedrawRequest::At(*now + remaining);
+    //         //                 next_redraw = next_redraw
+    //         //                     .map(|redraw| redraw.min(redraw_at))
+    //         //                     .or(Some(redraw_at));
+    //         //             }
+    //         //         }
+    //         //     });
+    //
+    //         if let Some(redraw) = next_redraw {
+    //             shell.request_redraw(redraw);
+    //         }
+    //     }
+    //
+    //     let viewport = layout.bounds();
+    //
+    //     self.notifications
+    //         .iter_mut()
+    //         .zip(self.state.iter_mut())
+    //         .zip(layout.children())
+    //         .map(|(((child, state), layout), instant)| {
+    //             let mut local_messages = vec![];
+    //             let mut local_shell = Shell::new(&mut local_messages);
+    //
+    //             let status = child.as_widget_mut().on_event(
+    //                 state,
+    //                 event.clone(),
+    //                 layout,
+    //                 cursor,
+    //                 renderer,
+    //                 clipboard,
+    //                 &mut local_shell,
+    //                 &viewport,
+    //             );
+    //
+    //             // if !local_shell.is_empty() {
+    //             //     instant.take();
+    //             // }
+    //
+    //             shell.merge(local_shell, std::convert::identity);
+    //
+    //             status
+    //         })
+    //         .fold(event::Status::Ignored, event::Status::merge)
+    // }
+
+    fn draw(
+        &self,
+        renderer: &mut Renderer,
+        theme: &Theme,
+        style: &renderer::Style,
+        layout: Layout<'_>,
+        cursor: mouse::Cursor,
+    ) {
+        let viewport = layout.bounds();
+
+        println!("layout: {:?}", layout);
+
+        for ((child, state), layout) in self
+            .notifications
+            .iter()
+            .zip(self.state.iter())
+            .zip(layout.children())
+        {
+            // TODO: How can we add an explain here to debug the notification?
+            child
+                .as_widget()
+                .draw(state, renderer, theme, style, layout, cursor, &viewport);
+        }
+    }
+
+    // fn operate(
+    //     &mut self,
+    //     layout: Layout<'_>,
+    //     renderer: &Renderer,
+    //     operation: &mut dyn widget::Operation<()>,
+    // ) {
+    //     operation.container(None, layout.bounds(), &mut |operation| {
+    //         // self.notifications
+    //         //     .iter()
+    //         //     .zip(self.state.iter_mut())
+    //         //     .zip(layout.children())
+    //         //     // .for_each(|((child, state), layout)| {
+    //         //     //     child
+    //         //     //         .as_widget()
+    //         //     //         .operate(state, layout, renderer, operation);
+    //         //     // });
+    //     });
+    // }
+
+    // fn mouse_interaction(
+    //     &self,
+    //     layout: Layout<'_>,
+    //     cursor: mouse::Cursor,
+    //     viewport: &Rectangle,
+    //     renderer: &Renderer,
+    // ) -> mouse::Interaction {
+    //     self.notifications
+    //         .iter()
+    //         .zip(self.state.iter())
+    //         .zip(layout.children())
+    //         .map(|((child, state), layout)| {
+    //             child
+    //                 .as_widget()
+    //                 .mouse_interaction(state, layout, cursor, viewport, renderer)
+    //         })
+    //         .max()
+    //         .unwrap_or_default()
+    // }
+    //
+    // fn is_over(&self, layout: Layout<'_>, _renderer: &Renderer, cursor_position: Point) -> bool {
+    //     layout
+    //         .children()
+    //         .any(|layout| layout.bounds().contains(cursor_position))
+    // }
 }

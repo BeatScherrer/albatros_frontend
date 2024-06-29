@@ -1,5 +1,6 @@
-use iced::widget::{column, text};
-use iced::Element;
+use iced::widget::column;
+use iced::widget::text;
+use iced::{Element, Length};
 
 use crate::application::AlbatrosMessage;
 
@@ -11,9 +12,10 @@ pub struct Settings {
 
 impl Settings {
     pub fn view(self: &Self) -> Element<AlbatrosMessage> {
-        // column!(
-        //     text("hello world")
-        // ).into()
-        text(format!("hello from settings: {:?}", self)).into()
+        column![text(format!("hello from settings: {:?}", self))]
+            .spacing(10)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
     }
 }
