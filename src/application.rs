@@ -3,7 +3,7 @@
 use iced::{
     advanced::Application,
     executor,
-    widget::{button, column, container, row, text},
+    widget::{button, center, column, container, row, text},
     Color, Command, Element, Length,
 };
 
@@ -93,16 +93,18 @@ impl Application for AlbatrosApplication {
     fn view(&self) -> Element<'_, AlbatrosMessage> {
         let element: Element<'_, AlbatrosMessage> = row![
             container(self.navigation()).width(200).height(Length::Fill),
-            container(match self.page {
+            center(match self.page {
                 Page::Settings => self.settings.view(),
                 Page::Profile => self.profile.view(),
             })
-            .width(Length::FillPortion(5)),
+            .width(Length::FillPortion(5))
+            .height(Length::Fill),
             container(Notifications::new(
                 column![text("hello"), text("world")],
                 &self.notifications,
                 |s: usize| AlbatrosMessage::Dummy(1),
-            )),
+            ))
+            .width(0), // NOTE: hack to hide the widget
         ]
         .into();
 
