@@ -1,6 +1,11 @@
+use std::time::Instant;
+
+use iced::advanced::renderer::Quad;
+use iced::advanced::widget::Tree;
+use iced::advanced::{layout, widget};
 use iced::widget::{button, column, container, horizontal_rule, horizontal_space, row, text};
 use iced::{advanced::Widget, Element, Length, Renderer, Size, Theme};
-use iced::{Alignment, Event};
+use iced::{Alignment, Border, Color, Event, Shadow};
 
 #[allow(dead_code, unused_imports)]
 
@@ -39,11 +44,12 @@ pub enum Message {
 
 #[derive(Debug, Clone, Default)]
 pub struct Notification {
-    title: String,
-    message: String,
+    pub title: String,
+    pub message: String,
 }
 
 pub struct Notifications<'a, Message> {
+    /// TODO: What is this content actually?? Content of the app?
     content: Element<'a, Message>,
     notifications: Vec<Element<'a, Message>>,
     timeout_secs: u64,
@@ -102,10 +108,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for Notifications<'a, Message
         tree: &mut iced::advanced::widget::Tree,
         renderer: &Renderer,
         limits: &iced::advanced::layout::Limits,
-    ) -> iced::advanced::layout::Node {
-        println!("{:?}", tree);
-
-        // NOTE: tree is empty currently
+    ) -> layout::Node {
         self.content
             .as_widget()
             .layout(&mut tree.children[0], renderer, limits)
@@ -130,6 +133,19 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for Notifications<'a, Message
             cursor,
             viewport,
         );
+    }
+
+    // NOTE: This seems required
+    fn children(&self) -> Vec<iced::advanced::widget::Tree> {
+        std::iter::once(Tree::new(&self.content))
+            .chain(self.notifications.iter().map(Tree::new))
+            .collect()
+    }
+
+    // NOTE: This is also required...
+    fn tag(&self) -> widget::tree::Tag {
+        struct Marker;
+        widget::tree::Tag::of::<Marker>()
     }
 }
 

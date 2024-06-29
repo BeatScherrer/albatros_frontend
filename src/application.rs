@@ -3,7 +3,7 @@
 use iced::{
     advanced::Application,
     executor,
-    widget::{button, column, container, row, text},
+    widget::{button, center, column, container, row, text, text_input},
     Command, Element,
 };
 
@@ -55,7 +55,16 @@ impl Application for AlbatrosApplication {
     type Renderer = iced::Renderer;
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        (Self::default(), Command::none())
+        (
+            AlbatrosApplication {
+                notifications: vec![Notification {
+                    title: String::from("hellol"),
+                    message: String::from("World"),
+                }],
+                ..Default::default()
+            },
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
